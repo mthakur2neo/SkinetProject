@@ -31,6 +31,7 @@ export class LoginComponent {
   })
 
   onSubmit() {
+    alert('are you sure. want to logout?')
     this.accountService.login(this.loginForm.value).subscribe({
       next: () => {
         this.accountService.getUserInfo().subscribe();
