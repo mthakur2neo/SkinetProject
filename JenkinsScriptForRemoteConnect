@@ -47,18 +47,38 @@ pipeline {
         stage('Deploy to Remote Server') {
             steps {
                 bat '''
-                    echo Connecting to remote server...
+            echo ======================================
+            echo Connecting to remote server...
+            echo ======================================
 
-                    net use %REMOTE_PATH% /user:%USERNAME% "%PASSWORD%"
-                    IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
-                    
-                    echo Copying files to remote IIS folder...
-                    xcopy /E /Y /I C:\\publish\\coreapp\\* %REMOTE_PATH%\\coreapp\\
-                    IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
+            net use %REMOTE_PATH% /user:%USERNAME% "%PASSWORD%"
+            IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
+            
+            echo ======================================
+            echo Copying files to remote IIS folder...
+            echo ======================================
 
-                    echo Disconnecting...
-                    net use %REMOTE_PATH% /delete
-                '''
+            xcopy /E /Y /I C:\\publish\\coreapp\\* %REMOTE_PATH%\\coreapp\\
+            IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
+            
+            echo ======================================
+            echo Starting IIS site 'coreapp'...
+            echo ======================================
+
+            powershell -Command "Invoke-Command -ComputerName 10.255.0.105 -ScriptBlock { Import-Module WebAdministration; Start-Website -Name 'coreapp' } -Credential (New-Object System.Management.Automation.PSCredential('%USERNAME%', (ConvertTo-SecureString '%PASSWORD%' -AsPlainText -Force)))"
+
+            echo ======================================
+            echo Bringing application back online...
+            echo ======================================
+
+            del %REMOTE_PATH%\\coreapp\\app_offline.htm
+
+            echo ======================================
+            echo Disconnecting...
+            echo ======================================
+
+            net use %REMOTE_PATH% /delete
+        '''
             }
         }
     }
@@ -72,3 +92,4 @@ pipeline {
         }
     }
 }
+
