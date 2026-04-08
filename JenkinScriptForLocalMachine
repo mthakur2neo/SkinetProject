@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Pull Code from GitHub') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/mthakur2neo/SkinetProject.git'
+            }
+        }
+		
+		stage('Install Angular Dependencies') {
+            steps {
+                dir('client') {
+                    bat 'npm install'
+                }
+            }
+        }
+		
+		stage('Build Angular App') {
+            steps {
+                dir('client') {
+                    bat 'npm run build -- --configuration production'
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                bat 'dotnet build --configuration Release'
+            }
+        }
+
+        stage('Publish') {
+            steps {
+                bat 'dotnet publish --configuration Release --output C:\\publish\\coreapp'
+            }
+        }
+
+        stage('Deploy to IIS') {
+            steps {
+                bat '''
+                    iisreset /stop
+                    xcopy /E /Y C:\\publish\\coreapp\\* C:\\inetpub\\wwwroot\\coreapp\\
+                    iisreset /start
+                '''
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo 'Deployment Successful!'
+        }
+        failure {
+            echo 'Something went wrong!'
+        }
+    }
+}

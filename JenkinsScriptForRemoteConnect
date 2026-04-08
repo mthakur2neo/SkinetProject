@@ -1,0 +1,74 @@
+pipeline {
+    agent any
+
+    environment {
+        REMOTE_PATH = '\\\\10.255.0.105\\C$'
+        USERNAME = 'Administrator'
+        PASSWORD = 'NEOsoftware$#@!1234'
+    }
+
+    stages {
+
+        stage('Pull Code from GitHub') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/mthakur2neo/SkinetProject.git'
+            }
+        }
+
+        stage('Install Angular Dependencies') {
+            steps {
+                dir('client') {
+                    bat 'npm install'
+                }
+            }
+        }
+
+        stage('Build Angular App') {
+            steps {
+                dir('client') {
+                    bat 'npm run build -- --configuration production'
+                }
+            }
+        }
+
+        stage('Build .NET') {
+            steps {
+                bat 'dotnet build --configuration Release'
+            }
+        }
+
+        stage('Publish .NET') {
+            steps {
+                bat 'dotnet publish --configuration Release --output C:\\publish\\coreapp'
+            }
+        }
+
+        stage('Deploy to Remote Server') {
+            steps {
+                bat '''
+                    echo Connecting to remote server...
+
+                    net use %REMOTE_PATH% /user:%USERNAME% "%PASSWORD%"
+                    IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
+                    
+                    echo Copying files to remote IIS folder...
+                    xcopy /E /Y /I C:\\publish\\coreapp\\* %REMOTE_PATH%\\coreapp\\
+                    IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
+
+                    echo Disconnecting...
+                    net use %REMOTE_PATH% /delete
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Deployment to remote server successful!'
+        }
+        failure {
+            echo '❌ Deployment failed!'
+        }
+    }
+}
