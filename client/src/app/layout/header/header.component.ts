@@ -36,7 +36,7 @@ export class HeaderComponent {
   private router = inject(Router);
 
   logout() {
-    alert('are you sure. want to logout?')
+    
     this.accountService.logout().subscribe({
       next: () => {
         this.accountService.currentUser.set(null);
