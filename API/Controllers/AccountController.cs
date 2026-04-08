@@ -47,17 +47,29 @@ public class AccountController(SignInManager<AppUser> signInManager) : BaseApiCo
     [HttpGet("user-info")]
     public async Task<ActionResult> GetUserInfo()
     {
-        if (User.Identity?.IsAuthenticated == false) return NoContent();
+        //if (User.Identity?.IsAuthenticated == false) return NoContent();
 
-        var user = await signInManager.UserManager.GetUserByEmailWithAddress(User);
+        //var user = await signInManager.UserManager.GetUserByEmailWithAddress(User);
+
+        //return Ok(new
+        //{
+        //    user.FirstName,
+        //    user.LastName,
+        //    user.Email,
+        //    Address = user.Address?.ToDto(),
+        //    Roles = User.FindFirstValue(ClaimTypes.Role)
+        //});
+
+        //if (User.Identity?.IsAuthenticated == false) return NoContent();
+
+        //var user = await signInManager.UserManager.GetUserByEmailWithAddress(User);
 
         return Ok(new
         {
-            user.FirstName,
-            user.LastName,
-            user.Email,
-            Address = user.Address?.ToDto(),
-            Roles = User.FindFirstValue(ClaimTypes.Role)
+            FirstName = "mahesh",
+            LastName = "Thakur", //user.LastName,
+            Email = "mahesh3thakur@gmail.com", //user.Email,
+            Roles = "User"
         });
     }
 
@@ -69,7 +81,7 @@ public class AccountController(SignInManager<AppUser> signInManager) : BaseApiCo
             IsAuthenticated = User.Identity?.IsAuthenticated ?? false
         });
     }
-    
+
     [Authorize]
     [HttpPost("address")]
     public async Task<ActionResult<Address>> CreateOrUpdateAddress(AddressDto addressDto)
